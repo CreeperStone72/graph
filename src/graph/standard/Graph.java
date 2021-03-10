@@ -1,7 +1,7 @@
-package standard;
+package graph.standard;
 
-import exception.LinkNotFoundException;
-import exception.NodeNotFoundException;
+import graph.exception.LinkNotFoundException;
+import graph.exception.NodeNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,41 +65,6 @@ public class Graph<T> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Methods ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    //// Merging methods /////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    /**
-     * Merges two arrays without any duplicates
-     * @param l1 is the first list
-     * @param l2 is the second list
-     * @return a new list
-     */
-    private List<Node<T>> mergeNodes(List<Node<T>> l1, List<Node<T>> l2) {
-        List<Node<T>> l = new ArrayList<>(l1);
-
-        for(Node<T> elem : l2)
-            if(!l.contains(elem))
-                l.add(elem);
-
-        return l;
-    }
-
-    /**
-     * Merges two arrays without any duplicates
-     * @param l1 is the first list
-     * @param l2 is the second list
-     * @return a new list
-     */
-    private List<Link> mergeLinks(List<Link> l1, List<Link> l2) {
-        List<Link> l = new ArrayList<>(l1);
-
-        for(Link elem : l2)
-            if(!l.contains(elem))
-                l.add(elem);
-
-        return l;
-    }
-
-    //////////////////////////////////////////////////////////////////////
     //// Predecessor methods /////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////
     /**
@@ -109,10 +74,16 @@ public class Graph<T> {
      */
     public List<Node<T>> getPredecessors(T data) {
         List<Node<T>> predecessors = new ArrayList<>();
+        Node<T> node = new Node<>(data);
 
-        for(Link link : getLinks())
-            if(link.matchY(new Node<>(data)))
+        for(Link link : getLinks()) {
+
+            if (link.matchY(node))
                 predecessors.add((Node<T>) link.getX());
+
+            if(!isDirected() && link.matchX(node))
+                predecessors.add((Node<T>) link.getY());
+        }
 
         return predecessors;
     }
@@ -124,10 +95,15 @@ public class Graph<T> {
      */
     public List<Link> getPredecessorLinks(T data) {
         List<Link> predecessorLinks = new ArrayList<>();
+        Node<T> node = new Node<>(data);
 
-        for(Link link : getLinks())
-            if(link.matchY(new Node<>(data)))
+        for(Link link : getLinks()) {
+            if (link.matchY(node))
                 predecessorLinks.add(link);
+
+            if(!isDirected() && link.matchX(node))
+                predecessorLinks.add(link);
+        }
 
         return predecessorLinks;
     }
@@ -142,10 +118,16 @@ public class Graph<T> {
      */
     public List<Node<T>> getSuccessors(T data) {
         List<Node<T>> successors = new ArrayList<>();
+        Node<T> node = new Node<>(data);
 
-        for(Link link : getLinks())
-            if(link.matchX(new Node<>(data)))
+        for(Link link : getLinks()) {
+
+            if (link.matchX(node))
                 successors.add((Node<T>) link.getY());
+
+            if(!isDirected() && link.matchY(node))
+                successors.add((Node<T>) link.getX());
+        }
 
         return successors;
     }
@@ -157,10 +139,15 @@ public class Graph<T> {
      */
     public List<Link> getSuccessorLinks(T data) {
         List<Link> successorLinks = new ArrayList<>();
+        Node<T> node = new Node<>(data);
 
-        for(Link link : getLinks())
-            if(link.matchX(new Node<>(data)))
+        for(Link link : getLinks()) {
+            if (link.matchX(node))
                 successorLinks.add(link);
+
+            if(!isDirected() && link.matchY(node))
+                successorLinks.add(link);
+        }
 
         return successorLinks;
     }
@@ -173,7 +160,7 @@ public class Graph<T> {
      * @param data is the data carried by the node
      * @return a list of all neighbors
      */
-    public List<Node<T>> getOpenNeighborhood(T data) { return mergeNodes(getPredecessors(data), getSuccessors(data)); }
+    public List<Node<T>> getOpenNeighborhood(T data) { return ArrayMethods.merge(getPredecessors(data), getSuccessors(data)); }
 
     /**
      * Finds the closed neighborhood of a given node
@@ -194,7 +181,7 @@ public class Graph<T> {
      * @param data is the data carried by the node
      * @return a list of all links to neighbors
      */
-    public List<Link> getNeighborLinks(T data) { return mergeLinks(getPredecessorLinks(data), getSuccessorLinks(data)); }
+    public List<Link> getNeighborLinks(T data) { return ArrayMethods.merge(getPredecessorLinks(data), getSuccessorLinks(data)); }
 
     //////////////////////////////////////////////////////////////////////
     //// Node CRUD methods ///////////////////////////////////////////////
@@ -233,7 +220,7 @@ public class Graph<T> {
      * @return true if the node was deleted
      * @throws NodeNotFoundException if the node isn't in the graph
      */
-    private boolean remove(T data) throws NodeNotFoundException { return deleteLinks(getNeighborLinks(data)) && getNodes().remove(findNode(data)); }
+    public boolean remove(T data) throws NodeNotFoundException { return deleteLinks(getNeighborLinks(data)) && getNodes().remove(findNode(data)); }
 
     //////////////////////////////////////////////////////////////////////
     //// Link CRUD methods ///////////////////////////////////////////////
@@ -314,7 +301,7 @@ public class Graph<T> {
      * @throws NodeNotFoundException if the node isn't in the graph
      * @throws LinkNotFoundException if the link isn't in the graph
      */
-    private boolean unlink(T dataX, T dataY) throws NodeNotFoundException, LinkNotFoundException { return getLinks().remove(findLink(dataX, dataY)); }
+    public boolean unlink(T dataX, T dataY) throws NodeNotFoundException, LinkNotFoundException { return getLinks().remove(findLink(dataX, dataY)); }
 
     /**
      * Deletes a link from the graph
@@ -335,5 +322,31 @@ public class Graph<T> {
             success &= unlink(link);
 
         return success;
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //// Graph methods ///////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    /**
+     * Checks whether all nodes are linked to every other node
+     * @return true if the graph is complete, otherwise false
+     */
+    public boolean isComplete() {
+        for(Node<T> node : getNodes()) {
+            List<Node<T>> sublist = new ArrayList<>(getNodes());
+            sublist.remove(node);
+
+            for(Node<T> otherNode : sublist) {
+                try { findLink(node.getData(), otherNode.getData()); }
+                catch(NodeNotFoundException | LinkNotFoundException e) { return false; }
+
+                if(!isDirected()) {
+                    try { findLink(otherNode.getData(), node.getData()); }
+                    catch(NodeNotFoundException | LinkNotFoundException e) { return false; }
+                }
+            }
+        }
+
+        return true;
     }
 }

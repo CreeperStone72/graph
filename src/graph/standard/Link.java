@@ -1,47 +1,75 @@
-package standard;
+package graph.standard;
 
 import java.util.Objects;
 
 /**
- * A node within the graph
- * @param <T> represents the data stored within a node
+ * A link between two nodes
  * @author CreeperStone72
  */
-public class Node<T> {
+public class Link {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Attributes /////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * The data carried by the node
+     * The extremities of the link
      */
-    private T data;
+    private Node<?> x, y;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Main constructor
-     * @param data is the data carried by the node
+     * @param x is the starting node
+     * @param y is the ending node
      */
-    public Node(T data) { setData(data); }
+    public Link(Node<?> x, Node<?> y) {
+        setX(x);
+        setY(y);
+    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Setters ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    public void setData(T data) { this.data = data; }
+    public void setX(Node<?> x) { this.x = x; }
+
+    public void setY(Node<?> y) { this.y = y; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Getters ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    public T getData() { return data; }
+    public Node<?> getX() { return x; }
+
+    public Node<?> getY() { return y; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Methods ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * Informal override
-     * @param obj is the node being compared
-     * @return true if the two nodes carry the same data
+     * For non-oriented graphs, a (x, y) link is the same as a (y, x) link
+     * @return the link's symmetrical
      */
-    public boolean equals(Node<T> obj) { return Objects.equals(this.getData(), obj.getData()); }
+    public Link getSymmetrical() { return new Link(getY(), getX()); }
+
+    /**
+     * Checks whether a link matches given nodes
+     * @param x is the starting node
+     * @param y is the ending node
+     * @return true if both nodes match
+     */
+    public boolean matches(Node<?> x, Node<?> y) { return matchX(x) && matchY(y); }
+
+    /**
+     * Checks whether a link starts with a given node
+     * @param x is the supposed starting node
+     * @return true if the node matches
+     */
+    public boolean matchX(Node<?> x) { return Objects.equals(getX(), x); }
+
+    /**
+     * Checks whether a link ends with a given node
+     * @param y is the supposed ending node
+     * @return true of the node matches
+     */
+    public boolean matchY(Node<?> y) { return Objects.equals(getY(), y); }
 }

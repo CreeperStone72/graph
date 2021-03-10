@@ -1,6 +1,6 @@
-package simple;
+package graph.simple;
 
-import standard.Node;
+import graph.standard.Node;
 
 /**
  * Simple node that uses numbers to identify a node

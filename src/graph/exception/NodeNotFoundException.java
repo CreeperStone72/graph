@@ -1,4 +1,4 @@
-package exception;
+package graph.exception;
 
 /**
  * Exception thrown when a node is not found
