@@ -1,0 +1,66 @@
+package graph.standard.weighted;
+
+import graph.standard.DataLink;
+import graph.standard.Link;
+import graph.standard.Node;
+
+/**
+ * Special type of DataLink that carries a given weight
+ * @author CreeperStone72
+ */
+public class WeightedLink extends DataLink<Double> {
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Constructors ///////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Partial constructor. Assumes a default weight of 1.0
+     * @param x is the starting node
+     * @param y is the ending node
+     */
+    public WeightedLink(Node<?> x, Node<?> y) { this(x, y, 1.0); }
+
+    /**
+     * Main constructor
+     * @param x is the starting node
+     * @param y is the ending node
+     * @param weight is the link's weight
+     */
+    public WeightedLink(Node<?> x, Node<?> y, double weight) { super(x, y, weight); }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Setters ////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public void setX(Node<?> x) { super.setX(x); }
+
+    @Override
+    public void setY(Node<?> y) { super.setY(y); }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Getters ////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public Node<?> getX() { return super.getX(); }
+
+    @Override
+    public Node<?> getY() { return super.getY(); }
+
+    public Node<?> getOther(Node<?> node) { return matchX(node) ? getY() : getX(); }
+
+    public double getWeight() { return getData(); }
+
+    @Override
+    public WeightedLink getSymmetrical() { return new WeightedLink(getY(), getX(), getWeight()); }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // Methods ////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public boolean matches(Node<?> x, Node<?> y) { return super.matches(x, y); }
+
+    @Override
+    public boolean matchX(Node<?> x) { return super.matchX(x); }
+
+    @Override
+    public boolean matchY(Node<?> y) { return super.matchY(y); }
+}

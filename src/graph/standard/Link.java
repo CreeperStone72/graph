@@ -64,12 +64,15 @@ public class Link {
      * @param x is the supposed starting node
      * @return true if the node matches
      */
-    public boolean matchX(Node<?> x) { return Objects.equals(getX(), x); }
+    public boolean matchX(Node<?> x) { return Objects.equals(getX().getData(), x.getData()); }
 
     /**
      * Checks whether a link ends with a given node
      * @param y is the supposed ending node
      * @return true of the node matches
      */
-    public boolean matchY(Node<?> y) { return Objects.equals(getY(), y); }
+    public boolean matchY(Node<?> y) { return Objects.equals(getY().getData(), y.getData()); }
+
+    @Override
+    public String toString() { return getX().toString() + "---" + getY().toString(); }
 }

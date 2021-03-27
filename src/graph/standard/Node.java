@@ -44,4 +44,12 @@ public class Node<T> {
      * @return true if the two nodes carry the same data
      */
     public boolean equals(Node<T> obj) { return Objects.equals(this.getData(), obj.getData()); }
+
+    /**
+     * How is the node represented visually ?
+     */
+    public void model() { System.out.println(toString()); }
+
+    @Override
+    public String toString() { return "(" + getData().toString() + ")"; }
 }

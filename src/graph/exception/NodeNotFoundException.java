@@ -2,7 +2,6 @@ package graph.exception;
 
 /**
  * Exception thrown when a node is not found
- *
  * @author CreeperStone72
  */
 public class NodeNotFoundException extends Exception {

@@ -9,9 +9,11 @@ import java.util.Objects;
 
 /**
  * The main class to represent a graph
+ * @param <T> is the type carried by each node
+ * @param <L> is the type of Link used
  * @author CreeperStone72
  */
-public class Graph<T> {
+public class Graph<T, L extends Link> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Attributes /////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -23,7 +25,7 @@ public class Graph<T> {
     /**
      * The links within the graph
      */
-    private final List<Link> links;
+    private final List<L> links;
 
     /**
      * If true, links between nodes are asymmetrical
@@ -58,7 +60,7 @@ public class Graph<T> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     public List<Node<T>> getNodes() { return nodes; }
 
-    public List<Link> getLinks() { return links; }
+    public List<L> getLinks() { return links; }
 
     public boolean isDirected() { return isDirected; }
 
@@ -93,11 +95,11 @@ public class Graph<T> {
      * @param data is the data carried by the node
      * @return a list of all links to predecessors
      */
-    public List<Link> getPredecessorLinks(T data) {
-        List<Link> predecessorLinks = new ArrayList<>();
+    public List<L> getPredecessorLinks(T data) {
+        List<L> predecessorLinks = new ArrayList<>();
         Node<T> node = new Node<>(data);
 
-        for(Link link : getLinks()) {
+        for(L link : getLinks()) {
             if (link.matchY(node))
                 predecessorLinks.add(link);
 
@@ -137,11 +139,11 @@ public class Graph<T> {
      * @param data is the data carried by the node
      * @return a list of all links to successors
      */
-    public List<Link> getSuccessorLinks(T data) {
-        List<Link> successorLinks = new ArrayList<>();
+    public List<L> getSuccessorLinks(T data) {
+        List<L> successorLinks = new ArrayList<>();
         Node<T> node = new Node<>(data);
 
-        for(Link link : getLinks()) {
+        for(L link : getLinks()) {
             if (link.matchX(node))
                 successorLinks.add(link);
 
@@ -181,7 +183,7 @@ public class Graph<T> {
      * @param data is the data carried by the node
      * @return a list of all links to neighbors
      */
-    public List<Link> getNeighborLinks(T data) { return ArrayMethods.merge(getPredecessorLinks(data), getSuccessorLinks(data)); }
+    public List<L> getNeighborLinks(T data) { return ArrayMethods.merge(getPredecessorLinks(data), getSuccessorLinks(data)); }
 
     //////////////////////////////////////////////////////////////////////
     //// Node CRUD methods ///////////////////////////////////////////////
@@ -192,7 +194,14 @@ public class Graph<T> {
      * Inserts a node into the graph
      * @param data is the data carried by the new node
      */
-    public boolean insert(T data) { return getNodes().add(new Node<>(data)); }
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean insert(T data) {
+        Node<T> newNode = new Node<>(data);
+
+        if(getNodes().contains(newNode)) return false;
+        getNodes().add(newNode);
+        return true;
+    }
 
     /**
      * Finds a node by its data
@@ -200,7 +209,7 @@ public class Graph<T> {
      * @return the node if it's found
      * @throws NodeNotFoundException if the node is not found
      */
-    private Node<T> findNode(T data) throws NodeNotFoundException {
+    public Node<T> findNode(T data) throws NodeNotFoundException {
         for(Node<T> node : getNodes())
             if (Objects.equals(node.getData(), data))
                 return node;
@@ -234,12 +243,32 @@ public class Graph<T> {
      * @return true if the insertion was successful
      * @throws NodeNotFoundException if either node isn't found
      */
+    @SuppressWarnings("SuspiciousMethodCalls")
     public boolean link(T dataX, T dataY) throws NodeNotFoundException {
-        Link newLink = new Link(findNode(dataX), findNode(dataY));
+        L newLink = (L) new Link(findNode(dataX), findNode(dataY));
 
         if (!isDirected() && getLinks().contains(newLink.getSymmetrical())) return false;
         getLinks().add(newLink);
         return true;
+    }
+
+    /**
+     * Finds all links that have a given node
+     * @param data is the data carried by the searched node
+     * @return a list of all links that start with a given node (or ends with said node if the graph isn't directed)
+     * @throws NodeNotFoundException if the node isn't found in the graph
+     */
+    protected List<L> findLinks(T data) throws NodeNotFoundException {
+        Node<T> node = findNode(data);
+        List<L> linked = new ArrayList<>();
+        List<L> links = getLinks();
+
+        for(L link : links) {
+            if(link.matchX(node)) { linked.add(link); }
+            if(!isDirected() && link.matchY(node)) { linked.add(link); }
+        }
+
+        return linked;
     }
 
     /**
@@ -250,7 +279,7 @@ public class Graph<T> {
      * @throws NodeNotFoundException if either node isn't found
      * @throws LinkNotFoundException if the link is not found
      */
-    private Link findLink(T dataX, T dataY) throws NodeNotFoundException, LinkNotFoundException {
+    protected L findLink(T dataX, T dataY) throws NodeNotFoundException, LinkNotFoundException {
         Node<T> x = findNode(dataX);
         Node<T> y = findNode(dataY);
 
@@ -264,8 +293,8 @@ public class Graph<T> {
      * @return the link if it's found
      * @throws LinkNotFoundException if the link is not found
      */
-    private Link findDirectedLink(Node<T> x, Node<T> y) throws LinkNotFoundException {
-        for(Link link : getLinks())
+    private L findDirectedLink(Node<T> x, Node<T> y) throws LinkNotFoundException {
+        for(L link : getLinks())
             if(link.matches(x, y))
                 return link;
 
@@ -279,8 +308,8 @@ public class Graph<T> {
      * @return the link if it's found
      * @throws LinkNotFoundException if the link is not found
      */
-    private Link findNonDirectedLink(Node<T> x, Node<T> y) throws LinkNotFoundException {
-        for(Link link : getLinks())
+    protected L findNonDirectedLink(Node<T> x, Node<T> y) throws LinkNotFoundException {
+        for(L link : getLinks())
             if(link.matches(x, y) || link.getSymmetrical().matches(x, y))
                 return link;
 
@@ -308,17 +337,17 @@ public class Graph<T> {
      * @param link is the link to be removed
      * @return true if it was successfully removed
      */
-    private boolean unlink(Link link) { return getLinks().remove(link); }
+    private boolean unlink(L link) { return getLinks().remove(link); }
 
     /**
      * Deletes a bunch of links from the graph
      * @param links is the list of links to be removed
      * @return true if it was successfully removed
      */
-    private boolean deleteLinks(List<Link> links) {
+    private boolean deleteLinks(List<L> links) {
         boolean success = true;
 
-        for(Link link : links)
+        for(L link : links)
             success &= unlink(link);
 
         return success;
@@ -345,6 +374,114 @@ public class Graph<T> {
                     catch(NodeNotFoundException | LinkNotFoundException e) { return false; }
                 }
             }
+        }
+
+        return true;
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //// Research methods ////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    /**
+     * An iterative approach to breadth-first search
+     * @param data is the information carried by the root node
+     * @throws NodeNotFoundException if the node doesn't exist
+     */
+    public void iterativeBFS(T data) throws NodeNotFoundException {
+        List<Node<T>> alreadyVisited = new ArrayList<>();
+        Node<T> root = findNode(data);
+
+        root.model();
+        List<Node<T>> successors = getSuccessors(root.getData());
+
+        while(ArrayMethods.similarity(alreadyVisited, getNodes()) + 1 != order()) {
+            for(Node<T> elem : successors) {
+                if(!alreadyVisited.contains(elem)) {
+                    elem.model();
+                    successors = ArrayMethods.merge(successors, getSuccessors(elem.getData()));
+                    alreadyVisited.add(elem);
+                }
+            }
+        }
+
+        System.out.println("=== END OF BFS ===");
+    }
+
+    /**
+     * A recursive approach to breadth-first search
+     * @param data is the information carried by the root node
+     * @throws NodeNotFoundException if the node doesn't exist
+     */
+    public void recursiveBFS(T data) throws NodeNotFoundException {
+        Node<T> root = findNode(data);
+        root.model();
+
+        recursiveBFS(new ArrayList<>(), getSuccessors(data));
+    }
+
+    /**
+     * A recursive approach to breadth-first search (the actually recursive part)
+     */
+    private void recursiveBFS(List<Node<T>> alreadyVisited, List<Node<T>> successors) {
+        if(ArrayMethods.similarity(alreadyVisited, getNodes()) + 1 != order()) {
+            if(successors.size() > 0) {
+                Node<T> elem = ArrayMethods.head(successors);
+                List<Node<T>> tail = ArrayMethods.tail(successors);
+
+                if (!alreadyVisited.contains(elem)) {
+                    elem.model();
+                    successors = ArrayMethods.merge(tail, getSuccessors(elem.getData()));
+                    alreadyVisited.add(elem);
+                }
+
+                recursiveBFS(alreadyVisited, successors);
+            }
+        } else { System.out.println("=== END OF BFS ==="); }
+    }
+
+    /**
+     * An iterative approach to depth-first search
+     * @param data is the data carried by the root node
+     * @throws NodeNotFoundException if the node doesn't exist
+     */
+    public void iterativeDFS(T data) throws NodeNotFoundException {
+        List<Node<T>> alreadyVisited = new ArrayList<>();
+        Node<T> root = findNode(data);
+
+        root.model();
+        List<Node<T>> successors = getSuccessors(data);
+
+        while(ArrayMethods.similarity(alreadyVisited, getNodes()) + 1 != order()) {
+            if(successors.size() > 0) {
+                Node<T> elem = ArrayMethods.head(successors);
+                List<Node<T>> tail = ArrayMethods.tail(successors);
+
+                if(!alreadyVisited.contains(elem)) {
+                    elem.model();
+                    successors = ArrayMethods.merge(getSuccessors(elem.getData()), tail);
+                    alreadyVisited.add(elem);
+                }
+            }
+        }
+
+        System.out.println("=== END OF DFS ===");
+    }
+
+    //////////////////////////////////////////////////////////////////////
+    //// Path methods ////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////
+    /**
+     * Checks whether a path is valid within the graph
+     * @param path is the path to be tested
+     * @return true if the path is valid, otherwise false
+     */
+    public boolean isPathValid(Path<T> path) {
+        for(int i = 0 ; i < path.size() - 1 ; i++) {
+            Node<T> start = path.get(i);
+            Node<T> end = path.get(i + 1);
+
+            try { findLink(start.getData(), end.getData()); }
+            catch(LinkNotFoundException | NodeNotFoundException e) { return false; }
         }
 
         return true;

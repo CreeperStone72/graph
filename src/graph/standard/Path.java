@@ -1,96 +1,100 @@
 package graph.standard;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-public class Path {
+/**
+ * A path from node to node
+ * @param <T> is the type of data carried by the node
+ * @author CreeperStone72
+ */
+public class Path<T> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Attributes /////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * The head of the list
+     * The nodes within the path
      */
-    private PathNode head;
+    private final List<Node<T>> nodes;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * Content-based constructor
-     * @param node is the node carried by the head of the list
+     * Empty constructor. Initialises the list
      */
-    public Path(Node<?> node) { this(new PathNode(node)); }
-
-    /**
-     * Node-based constructor
-     * @param head is the head of the list
-     */
-    public Path(PathNode head) { setHead(head); }
+    public Path() { nodes = new ArrayList<>(); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Setters ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    private void setHead(PathNode head) { this.head = head; }
+    public void insert(Node<T> node) { nodes.add(node); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Getters ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    private PathNode getHead() { return head; }
-
-    public Node<?> getHeadNode() { return getHead().getNode(); }
+    public Node<T> get(int i) { return nodes.get(i); }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Methods ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * Attach a path to another
-     * @param path is the next path
-     */
-    public void attachNext(Path path) { setHead(path.getHead()); }
+    public int size() { return nodes.size(); }
 
-    /**
-     * Builds a new path from the tail of the list
-     * @return the tail of the list as a new path
-     */
-    public Path next() { return new Path(getHead().getNext()); }
+    private boolean match(int index1, int index2) { return get(index1).getData() == get(index2).getData(); }
 
     /**
      * Checks whether the path is elementary
      * @return true if all nodes within the path are distinct, otherwise false
      */
     public boolean isElementary() {
-        Set<Node<?>> set = new HashSet<>();
-        Path copy = this;
+        Set<Node<T>> set = new HashSet<>();
 
-        while(copy.getHead() != null) {
-            if (!set.add(copy.getHeadNode()))
-                return false;
-
-            copy = copy.next();
-        }
+        for(Node<T> node : nodes) { if (!set.add(node)) return false; }
 
         return true;
     }
 
-    private static void removeLoop(Path path, Path start) {
-        Path copy = path;
-        while(copy.next() != start) { copy = copy.next(); }
+    /**
+     * If a path isn't elementary, then a loop needs to be removed
+     * @param path is the non-elementary path
+     * @param jumpStart is the index where the loop starts
+     * @param jumpEnd is the index where the biggest loop ends
+     * @return the elementary path
+     */
+    private static <T> Path<T> removeLoop(Path<T> path, int jumpStart, int jumpEnd) {
+        Path<T> newPath = new Path<>();
 
-        Path scroll = start.next();
-        while(scroll != null && scroll.getHeadNode() != start.getHeadNode()) { scroll = scroll.next(); }
+        for(int i = 0 ; i < jumpStart ; i++) { newPath.insert(path.get(i)); }
 
-        copy.attachNext(scroll);
+        for(int j = jumpEnd ; j < path.size() ; j++) { newPath.insert(path.get(j)); }
+
+        return newPath;
     }
 
-    public static Path getElementary(Path path) {
-        Path copy = new Path(path.getHead());
-        Path next = copy.next();
+    /**
+     * Finds the elementary path from a given one
+     * @param path is the point of reference
+     * @return an elementary path
+     */
+    public static <T> Path<T> getElementary(Path<T> path) {
+        if(!path.isElementary())
+            for(int i = 0 ; i < path.size() ; i++) { for(int j = path.size() - 1 ; j > i ; j--) { if(path.match(i, j)) { return removeLoop(path, i, j); } } }
 
-        while(!copy.isElementary()) {
-            removeLoop(copy, next);
-            next = next.next();
+        return path;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        for(int i = 0 ; i < size() ; i++) {
+            sb.append(get(i));
+
+            if(i < size() - 1) sb.append("---");
         }
 
-        return copy;
+        return sb.toString();
     }
 }

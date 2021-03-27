@@ -1,18 +1,14 @@
 package graph.simple;
 
-import graph.standard.Node;
+import graph.standard.Path;
 
 /**
- * Simple node that uses numbers to identify a node
+ * A simple path modelling that uses integers as nodes
  * @author CreeperStone72
  */
-public class SimpleNode extends Node<Integer> {
+public class SimplePath extends Path<Integer> {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * Main constructor
-     * @param data is the data carried by the node
-     */
-    public SimpleNode(int data) { super(data); }
+    public SimplePath() { super(); }
 }

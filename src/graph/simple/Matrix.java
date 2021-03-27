@@ -51,6 +51,9 @@ public class Matrix {
 
     public void setCols(int cols) { this.cols = cols; }
 
+    /**
+     * Initializes to a zero matrix
+     */
     private void init() {
         for (int row = 0 ; row < getRows() ; row++)
             for (int col = 0 ; col < getCols() ; col++)
