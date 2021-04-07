@@ -1,75 +1,45 @@
-package standard;
-
-import java.util.Objects;
+package graph.standard;
 
 /**
- * A link between two nodes
- * @author CreeperStone72
+ * Special type of Link that carries data
+ * @param <T> is the type of the data carried
  */
-public class Link {
+public class DataLink<T> extends Link {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Attributes /////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
-     * The extremities of the link
+     * Data carried by the link
      */
-    private Node<?> x, y;
+    private T data;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Constructors ///////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Main constructor
-     * @param x is the starting node
-     * @param y is the ending node
+     * @param x is the first node in the link
+     * @param y is the last node in the link
+     * @param data is the data carried by the link
      */
-    public Link(Node<?> x, Node<?> y) {
-        setX(x);
-        setY(y);
+    public DataLink(Node<?> x, Node<?> y, T data) {
+        super(x, y);
+        setData(data);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Setters ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    public void setX(Node<?> x) { this.x = x; }
-
-    public void setY(Node<?> y) { this.y = y; }
+    private void setData(T data) { this.data = data; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Getters ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    public Node<?> getX() { return x; }
-
-    public Node<?> getY() { return y; }
+    public T getData() { return data; }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Methods ////////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    /**
-     * For non-oriented graphs, a (x, y) link is the same as a (y, x) link
-     * @return the link's symmetrical
-     */
-    public Link getSymmetrical() { return new Link(getY(), getX()); }
-
-    /**
-     * Checks whether a link matches given nodes
-     * @param x is the starting node
-     * @param y is the ending node
-     * @return true if both nodes match
-     */
-    public boolean matches(Node<?> x, Node<?> y) { return matchX(x) && matchY(y); }
-
-    /**
-     * Checks whether a link starts with a given node
-     * @param x is the supposed starting node
-     * @return true if the node matches
-     */
-    public boolean matchX(Node<?> x) { return Objects.equals(getX(), x); }
-
-    /**
-     * Checks whether a link ends with a given node
-     * @param y is the supposed ending node
-     * @return true of the node matches
-     */
-    public boolean matchY(Node<?> y) { return Objects.equals(getY(), y); }
+    @Override
+    public String toString() { return getX().toString() + "---" + getData() + "---" + getY().toString(); }
 }

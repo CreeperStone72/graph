@@ -1,7 +1,5 @@
-import exception.NodeNotFoundException;
-import simple.SimpleGraph;
-
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        // Do whatever you want here, I guess
     }
 }
