@@ -48,7 +48,7 @@ public class Node<T> {
     /**
      * How is the node represented visually ?
      */
-    public void model() { System.out.println(toString()); }
+    public void model() { System.out.println(this); }
 
     @Override
     public String toString() { return "(" + getData().toString() + ")"; }
